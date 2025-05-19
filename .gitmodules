@@ -1,6 +1,8 @@
 [submodule "ECommons"]
 	path = ECommons
-	url = https://github.com/NightmareXIV/ECommons
+	url = https://github.com/aethergel/ECommons
+	branch = kr
 [submodule "PunishLib"]
 	path = PunishLib
-	url = https://github.com/PunishXIV/PunishLib.git
+	url = https://github.com/aethergel/PunishLib
+	branch = kr
