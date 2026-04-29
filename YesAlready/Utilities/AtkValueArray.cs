@@ -2,8 +2,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
-
 namespace YesAlready.Utils;
 
 /// <summary>
@@ -38,7 +36,7 @@ internal unsafe class AtkValueArray : IDisposable
     {
         for (var i = 0; i < Length; i++)
         {
-            if (Pointer[i].Type == ValueType.String)
+            if (Pointer[i].Type == AtkValueType.String)
                 Marshal.FreeHGlobal(new IntPtr(Pointer[i].String));
         }
 
@@ -50,19 +48,19 @@ internal unsafe class AtkValueArray : IDisposable
         switch (value)
         {
             case uint uintValue:
-                Pointer[index].Type = ValueType.UInt;
+                Pointer[index].Type = AtkValueType.UInt;
                 Pointer[index].UInt = uintValue;
                 break;
             case int intValue:
-                Pointer[index].Type = ValueType.Int;
+                Pointer[index].Type = AtkValueType.Int;
                 Pointer[index].Int = intValue;
                 break;
             case float floatValue:
-                Pointer[index].Type = ValueType.Float;
+                Pointer[index].Type = AtkValueType.Float;
                 Pointer[index].Float = floatValue;
                 break;
             case bool boolValue:
-                Pointer[index].Type = ValueType.Bool;
+                Pointer[index].Type = AtkValueType.Bool;
                 Pointer[index].Byte = Convert.ToByte(boolValue);
                 break;
             case string stringValue:
@@ -70,7 +68,7 @@ internal unsafe class AtkValueArray : IDisposable
                 var stringAlloc = Marshal.AllocHGlobal(stringBytes.Length + 1);
                 Marshal.Copy(stringBytes, 0, stringAlloc, stringBytes.Length + 1);
 
-                Pointer[index].Type = ValueType.String;
+                Pointer[index].Type = AtkValueType.String;
                 Pointer[index].String = (byte*)stringAlloc;
                 break;
             default:

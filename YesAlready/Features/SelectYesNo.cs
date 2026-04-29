@@ -47,7 +47,7 @@ internal class SelectYesno : TextMatchingFeature
                 Log($"Detected item [{item}] {item.Name}");
                 if (int.TryParse(Regex.Match(text, @"\d+").Value, out var value))
                 {
-                    if (GenericHelpers.FindRow<CollectablesShopItem>(x => x.Item.Value.RowId == item.RowId) is { } collectability)
+                    if (GenericHelpers.FindSubrow<CollectablesShopItem>(x => x.Item.Value.RowId == item.RowId) is { } collectability)
                     {
                         var min = collectability.CollectablesShopRefine.Value.LowCollectability;
                         Log($"Minimum collectability required is {min}, value detected is {value}");

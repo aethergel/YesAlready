@@ -9,8 +9,8 @@ internal class InputNumeric : TextMatchingFeature
     protected override unsafe string GetSetLastSeenText(AtkUnitBase* atk)
     {
         var text = atk->AtkValues[6].String;
-        Service.Watcher.LastSeenNumericsText = atk->AtkValues[6].String;
-        return text;
+        Service.Watcher.LastSeenNumericsText = atk->AtkValues[6].String.ToString();
+        return text.ToString();
     }
 
     protected override unsafe object? ShouldProceed(string text, AtkUnitBase* atk)

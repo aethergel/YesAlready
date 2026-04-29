@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 
 namespace YesAlready.UI.Tabs;
+
 public static class Lists
 {
     private static TextFolderNode ListRootFolder => C.ListRootFolder;

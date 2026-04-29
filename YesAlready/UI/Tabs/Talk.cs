@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Text;
 
 namespace YesAlready.UI.Tabs;
+
 public static class Talk
 {
     private static TextFolderNode TalkRootFolder => C.TalkRootFolder;

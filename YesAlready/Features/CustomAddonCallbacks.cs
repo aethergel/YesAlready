@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 
 namespace YesAlready.Features;
+
 public class CustomAddonCallbacks : BaseFeature
 {
     public override void Enable()

@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 
 namespace YesAlready.UI.Tabs;
+
 public static class Bothers
 {
     private static readonly string[] hotkeyChoices =

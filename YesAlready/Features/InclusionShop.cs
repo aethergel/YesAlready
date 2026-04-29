@@ -1,6 +1,5 @@
 using System;
 using ECommons.EzHookManager;
-using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace YesAlready.Features;
 
@@ -39,7 +38,7 @@ internal class InclusionShop : AddonFeature
             return Original();
 
         var atkValue0 = values[0];
-        if (atkValue0.Type != ValueType.Int)
+        if (atkValue0.Type != AtkValueType.Int)
             return Original();
 
         var val0 = atkValue0.Int;

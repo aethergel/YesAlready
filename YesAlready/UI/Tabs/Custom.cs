@@ -7,6 +7,7 @@ using System.Text;
 using YesAlready.Features;
 
 namespace YesAlready.UI.Tabs;
+
 public static class Custom
 {
     public static void DrawButtons()

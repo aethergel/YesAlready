@@ -1,18 +1,16 @@
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using ECommons.EzHookManager;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace YesAlready;
 
 public class Watcher : IDisposable
 {
-    private unsafe delegate void* FireCallbackDelegate(AtkUnitBase* atkUnitBase, int valueCount, AtkValue* atkValues, byte updateVisibility);
-    [EzHook("E8 ?? ?? ?? ?? 0F B6 E8 8B 44 24 20", detourName: nameof(FireCallbackDetour), true)]
-    private readonly EzHook<FireCallbackDelegate> FireCallbackHook = null!;
+    private readonly Hook<AtkUnitBase.Delegates.FireCallback> _fireCallbackHook;
 
     private bool _wasDisableKeyPressed;
     private uint _lastTargetId;
@@ -32,13 +30,18 @@ public class Watcher : IDisposable
     public bool DisableKeyPressed { get; set; }
     public LastListEntry? LastSelectedListEntry { get; set; } = new();
 
-    public Watcher()
+    public unsafe Watcher()
     {
         EzSignatureHelper.Initialize(this);
+        _fireCallbackHook = Svc.Hook.HookFromAddress<AtkUnitBase.Delegates.FireCallback>((nint)AtkUnitBase.MemberFunctionPointers.FireCallback, FireCallbackDetour);
         Svc.Framework.Update += FrameworkUpdate;
     }
 
-    public void Dispose() => Svc.Framework.Update -= FrameworkUpdate;
+    public void Dispose()
+    {
+        _fireCallbackHook.Dispose();
+        Svc.Framework.Update -= FrameworkUpdate;
+    }
 
     public class LastListEntry
     {
@@ -80,31 +83,31 @@ public class Watcher : IDisposable
             Service.Watcher.LastSelectedListEntry = null;
     }
 
-    private unsafe void* FireCallbackDetour(AtkUnitBase* atkUnitBase, int valueCount, AtkValue* atkValues, byte updateVisibility)
+    private unsafe bool FireCallbackDetour(AtkUnitBase* thisPtr, uint valueCount, AtkValue* values, bool close)
     {
-        if (atkUnitBase->NameString is not ("SelectString" or "SelectIconString"))
-            return FireCallbackHook.Original(atkUnitBase, valueCount, atkValues, updateVisibility);
+        if (thisPtr->NameString is not ("SelectString" or "SelectIconString"))
+            return _fireCallbackHook.Original(thisPtr, valueCount, values, close);
 
         try
         {
-            var atkValueList = Enumerable.Range(0, valueCount)
-                .Select<int, object>(i => atkValues[i].Type switch
+            var atkValueList = Enumerable.Range(0, (int)valueCount)
+                .Select<int, object>(i => values[i].Type switch
                 {
-                    ValueType.Int => atkValues[i].Int,
-                    ValueType.String => Marshal.PtrToStringUTF8(new IntPtr(atkValues[i].String)) ?? string.Empty,
-                    ValueType.UInt => atkValues[i].UInt,
-                    ValueType.Bool => atkValues[i].Byte != 0,
-                    _ => $"Unknown Type: {atkValues[i].Type}"
+                    AtkValueType.Int => values[i].Int,
+                    AtkValueType.String => Marshal.PtrToStringUTF8(new IntPtr(values[i].String)) ?? string.Empty,
+                    AtkValueType.UInt => values[i].UInt,
+                    AtkValueType.Bool => values[i].Byte != 0,
+                    _ => $"Unknown Type: {values[i].Type}"
                 })
                 .ToList();
-            PluginLog.Debug($"[{nameof(Watcher)}] Callback triggered on {atkUnitBase->NameString} with values: {string.Join(", ", atkValueList.Select(value => value.ToString()))}");
-            LastSeenListIndex = atkValues[0].Int;
+            PluginLog.Debug($"[{nameof(Watcher)}] Callback triggered on {thisPtr->NameString} with values: {string.Join(", ", atkValueList.Select(value => value.ToString()))}");
+            LastSeenListIndex = values[0].Int;
         }
         catch (Exception ex)
         {
             PluginLog.Error($"Exception in {nameof(FireCallbackDetour)}: {ex.Message}");
-            return FireCallbackHook.Original(atkUnitBase, valueCount, atkValues, updateVisibility);
+            return _fireCallbackHook.Original(thisPtr, valueCount, values, close);
         }
-        return FireCallbackHook.Original(atkUnitBase, valueCount, atkValues, updateVisibility);
+        return _fireCallbackHook.Original(thisPtr, valueCount, values, close);
     }
 }
