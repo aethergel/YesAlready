@@ -16,6 +16,12 @@ public class MiragePrismPrismSetConvert : AddonFeature
 
         if (GenericHelpers.TryGetAddonMaster<CustomAddonMaster.MiragePrismPrismSetConvert>(out var am))
         {
+            if (am.Addon->GetNodeById(12)->IsVisible())
+            {
+                Svc.Chat.PrintPluginMessage($"Outfit already in dresser");
+                return;
+            }
+
             if (am.Items.Any(i => i.Flag is CustomAddonMaster.ReaderMiragePrismPrismSetConvert.ItemFlag.Missing) && !C.AllowPartialFilling) return;
             foreach (var (item, i) in am.Items.WithIndex())
             {
