@@ -6,7 +6,6 @@
 		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="ECommons" Version="3.2.0.2" />
-	  <PackageReference Update="DalamudPackager" Version="15.0.0" />
+	  <PackageReference Include="ECommons" Version="3.2.0.13" />
 	</ItemGroup>
 </Project>

@@ -458,6 +458,18 @@ public static class Bothers
             }
             ImGuiX.IndentedTextColored("Automatically store glamours. Only activates if you have all pieces.");
 
+            if (mppsc)
+            {
+                using var indent = ImRaii.PushIndent();
+                var apf = C.AllowPartialFilling;
+                if (ImGui.Checkbox("Allow partial fills", ref apf))
+                {
+                    C.AllowPartialFilling = apf;
+                    C.Save();
+                }
+                ImGuiX.IndentedTextColored("Automatically store glamours regardless of having all the pieces.");
+            }
+
             var mppscc = C.MiragePrismPrismSetConvertC;
             if (ImGui.Checkbox("MiragePrismPrismSetConvertC", ref mppscc))
             {

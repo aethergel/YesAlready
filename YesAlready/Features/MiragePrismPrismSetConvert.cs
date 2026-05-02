@@ -1,4 +1,5 @@
 ﻿using ECommons.UIHelpers;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,11 +16,15 @@ public class MiragePrismPrismSetConvert : AddonFeature
 
         if (GenericHelpers.TryGetAddonMaster<CustomAddonMaster.MiragePrismPrismSetConvert>(out var am))
         {
-            if (am.Items.Any(i => i.Flag is CustomAddonMaster.ReaderMiragePrismPrismSetConvert.ItemFlag.Missing)) return; // missing items
-            if (am.FirstUnfilledSlot is { } slot)
-                Service.TaskManager.Enqueue(() => am.TryHandOver(slot), $"HandInSlot{slot}");
-            else
-                am.StoreAsGlamour();
+            if (am.Items.Any(i => i.Flag is CustomAddonMaster.ReaderMiragePrismPrismSetConvert.ItemFlag.Missing) && !C.AllowPartialFilling) return;
+            foreach (var (item, i) in am.Items.WithIndex())
+            {
+                if (item.Flag is not CustomAddonMaster.ReaderMiragePrismPrismSetConvert.ItemFlag.Unfilled)
+                    continue;
+                Service.TaskManager.Enqueue(() => am.TryHandOver(i), $"HandInSlot{i}");
+                Service.TaskManager.Enqueue(() => item.Flag is CustomAddonMaster.ReaderMiragePrismPrismSetConvert.ItemFlag.Filled);
+            }
+            am.StoreAsGlamour();
         }
     }
 
@@ -30,6 +35,9 @@ public class MiragePrismPrismSetConvert : AddonFeature
             public MiragePrismPrismSetConvert(nint addon) : base(addon) { }
             public MiragePrismPrismSetConvert(void* addon) : base(addon) { }
             public override string AddonDescription { get; } = "Outfit glamour creation";
+
+            public bool IsNewOutfit => Addon->Id == 130;
+            public bool IsExistingOutfit => Addon->Id == 131;
 
             public AtkComponentButton* StoreAsGlamourButton => Addon->GetComponentButtonById(27);
             public AtkComponentButton* CloseButton => Addon->GetComponentButtonById(26);
@@ -52,7 +60,7 @@ public class MiragePrismPrismSetConvert : AddonFeature
             public uint GlamourPrismsHeld => new ReaderMiragePrismPrismSetConvert(Base).GlamourPrismsHeld;
             public uint GlamourPrismsRequired => new ReaderMiragePrismPrismSetConvert(Base).ItemCount;
 
-            public List<int> SlotsFilled => Enumerable.Range(0, Items.Length).Where(x => Items[x].InventoryType != 9999).ToList();
+            public List<int> SlotsFilled => Enumerable.Range(0, Items.Length).Where(x => Items[x].Flag is ReaderMiragePrismPrismSetConvert.ItemFlag.Filled or ReaderMiragePrismPrismSetConvert.ItemFlag.AlreadyInOutfit).ToList();
             public int? FirstUnfilledSlot => SlotsFilled.Count == Items.Length ? null : Enumerable.Range(0, Items.Length).FirstOrDefault(i => !SlotsFilled.Contains(i));
 
             public bool? TryHandOver(int slot)
@@ -86,7 +94,7 @@ public class MiragePrismPrismSetConvert : AddonFeature
             /// <remarks>
             /// Also the amount of glamour prisms required
             /// </remarks>
-            public uint ItemCount => ReadUInt(20) ?? 0;
+            public uint ItemCount => AgentMiragePrismPrismSetConvert.Instance()->Data->NumItemsInSet;
             public List<Item> Items => Loop<Item>(21, 7, (int)ItemCount);
 
             public unsafe class Item(nint Addon, int start) : AtkReader(Addon, start)
@@ -105,6 +113,7 @@ public class MiragePrismPrismSetConvert : AddonFeature
                 Missing = 0,
                 Unfilled = 2,
                 Filled = 3,
+                AlreadyInOutfit = 6
             }
         }
     }
